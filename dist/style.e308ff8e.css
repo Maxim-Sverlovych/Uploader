@@ -32,6 +32,7 @@ body {
     background: #ffffff;
     transition: all 0.22s;
     margin-right: 1rem;
+    margin-left: 7px;
 }
 
 .btn.primary {
@@ -50,6 +51,22 @@ body {
 
 input[type=file] {
     display: none;
+}
+
+.preview {
+    display: flex;
+    flex-wrap: wrap;
+    padding: .5rem;
+}
+
+.preview-image {
+    margin-bottom: .5rem;
+    margin-right: .5rem;
+}
+
+.preview-image img {
+    width: 150px;
+    height: auto;
 }
 
 /*# sourceMappingURL=/style.e308ff8e.css.map */

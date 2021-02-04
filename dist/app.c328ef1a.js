@@ -126,10 +126,23 @@ Object.defineProperty(exports, "__esModule", {
 exports.upload = upload;
 
 function upload(selector) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var input = document.querySelector(selector);
+  var preview = document.createElement('div');
+  preview.classList.add('preview');
   var open = document.createElement('button');
   open.classList.add('btn');
   open.textContent = 'OPEN';
+
+  if (options.multi) {
+    input.setAttribute('multiple', true);
+  }
+
+  if (options.accept && Array.isArray(options.accept)) {
+    input.setAttribute('accept', options.accept.join(','));
+  }
+
+  input.insertAdjacentElement('afterend', preview);
   input.insertAdjacentElement('afterend', open);
 
   var openInput = function openInput() {
@@ -137,7 +150,25 @@ function upload(selector) {
   };
 
   var changeInputHandler = function changeInputHandler(event) {
-    console.log(event.target.files);
+    if (!event.target.files.length) {
+      return;
+    }
+
+    var files = Array.from(event.target.files);
+    files.forEach(function (file) {
+      if (!file.type.match('image')) {
+        return;
+      }
+
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        var src = e.target.result;
+        preview.insertAdjacentHTML('afterbegin', "\n                    <div class=\"preview-image\">\n                        <img src=".concat(src, " alt=").concat(file.name, " />\n                    </div>\n                "));
+      };
+
+      reader.readAsDataURL(file);
+    });
   };
 
   open.addEventListener('click', openInput);
@@ -148,7 +179,10 @@ function upload(selector) {
 
 var _uploader = require("./uploader");
 
-(0, _uploader.upload)('#file');
+(0, _uploader.upload)('#file', {
+  multi: true,
+  accept: ['.png', 'jpg', 'jpeg', 'svg']
+});
 },{"./uploader":"uploader.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -177,7 +211,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50099" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51542" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
