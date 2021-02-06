@@ -32,7 +32,6 @@ body {
     background: #ffffff;
     transition: all 0.22s;
     margin-right: 1rem;
-    margin-left: 7px;
 }
 
 .btn.primary {
@@ -60,11 +59,66 @@ input[type=file] {
 }
 
 .preview-image {
+    position: relative;
     margin-bottom: .5rem;
     margin-right: .5rem;
+}
+
+.preview-image.removing {
+    transform: scale(0);
+    transition: transform .3s
 }
 
 .preview-image img {
     width: 150px;
     height: auto;
+}
+
+.preview-image:hover .preview-remove {
+    opacity: 1;
+}
+
+.preview-image:hover .preview-info {
+    opacity: 1;
+}
+
+.preview-remove {
+    opacity: 0;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: 0;
+    top: 0;
+    background: rgba(255, 255, 255, .5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity .22s;
+}
+
+.preview-info {
+    opacity: 0;
+    padding: 5px;
+    position: absolute;
+    min-height: 25px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    font-size: .8rem;
+    background: rgba(255, 255, 255, .5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: opacity .22s;
+}
+
+.preview-info-progress {
+   position: absolute;
+   top: 0;
+   left: 0;
+   bottom: 0;
+   background: #42b983;
+   text-align: center;
+   transition: width .22s;
 }
