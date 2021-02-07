@@ -115,10 +115,19 @@ input[type=file] {
 
 .preview-info-progress {
    position: absolute;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
    top: 0;
    left: 0;
    bottom: 0;
    background: #42b983;
    text-align: center;
    transition: width .22s;
+}
+
+.link-download {
+    color: #ffffff;
+    z-index: 1;
+    text-decoration: none;
 }

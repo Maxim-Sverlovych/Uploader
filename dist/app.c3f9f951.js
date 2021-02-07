@@ -8564,13 +8564,15 @@ var firebaseConfig = {
 exports.firebaseConfig = firebaseConfig;
 
 _app.default.initializeApp(firebaseConfig);
-},{"firebase/app":"node_modules/firebase/app/dist/index.esm.js"}],"js/uploader.js":[function(require,module,exports) {
+},{"firebase/app":"node_modules/firebase/app/dist/index.esm.js"}],"js/utils.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.upload = upload;
+exports.BytesToSize = BytesToSize;
+exports.Noop = Noop;
+exports.Element = void 0;
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -8584,7 +8586,7 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function bytesToSize(bytes) {
+function BytesToSize(bytes) {
   var sizes = ['Bytes', 'KB', 'MB', 'GB'];
 
   if (!bytes) {
@@ -8595,7 +8597,7 @@ function bytesToSize(bytes) {
   return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i];
 }
 
-var element = function element(tag) {
+var Element = function Element(tag) {
   var classes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
   var content = arguments.length > 2 ? arguments[2] : undefined;
   var node = document.createElement(tag);
@@ -8613,18 +8615,29 @@ var element = function element(tag) {
   return node;
 };
 
-function noop() {}
+exports.Element = Element;
+
+function Noop() {}
+},{}],"js/uploader.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.upload = upload;
+
+var _utils = require("./utils");
 
 function upload(selector) {
   var _options$onUpload;
 
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var files = [];
-  var onUpload = (_options$onUpload = options.onUpload) !== null && _options$onUpload !== void 0 ? _options$onUpload : noop;
+  var onUpload = (_options$onUpload = options.onUpload) !== null && _options$onUpload !== void 0 ? _options$onUpload : _utils.Noop;
   var input = document.querySelector(selector);
-  var preview = element('div', ['preview']);
-  var open = element('button', ['btn'], 'OPEN');
-  var uploadFile = element('button', ['btn', 'primaty'], 'UPLOAD');
+  var preview = (0, _utils.Element)('div', ['preview']);
+  var open = (0, _utils.Element)('button', ['btn'], 'OPEN');
+  var uploadFile = (0, _utils.Element)('button', ['btn', 'primary'], 'UPLOAD');
   uploadFile.style.display = 'none';
 
   if (options.multi) {
@@ -8660,7 +8673,7 @@ function upload(selector) {
 
       reader.onload = function (e) {
         var src = e.target.result;
-        preview.insertAdjacentHTML('afterbegin', "\n                    <div class=\"preview-image\">\n                        <div class=\"preview-remove\" data-name=\"".concat(file.name, "\">&times;</div>\n                            <img src=").concat(src, " alt=").concat(file.name, " />\n                            <div class=\"preview-info\">\n                                <span>").concat(file.name, "</span>\n                                <span>").concat(bytesToSize(file.size), "</span>\n                            </div>\n                    </div>\n                "));
+        preview.insertAdjacentHTML('afterbegin', "\n                    <div class=\"preview-image\">\n                        <div class=\"preview-remove\" data-name=\"".concat(file.name, "\">&times;</div>\n                            <img src=").concat(src, " alt=").concat(file.name, " />\n                            <div class=\"preview-info\">\n                                <span>").concat(file.name, "</span>\n                                <span>").concat((0, _utils.BytesToSize)(file.size), "</span>\n                            </div>\n                    </div>\n                "));
       };
 
       reader.readAsDataURL(file);
@@ -8690,7 +8703,7 @@ function upload(selector) {
 
   var changePreview = function changePreview(el) {
     el.style.opacity = 1;
-    el.innerHTML = '<div class="preview-info-progress"></div>';
+    el.innerHTML = "\n        <div class=\"preview-info-progress\"></div>\n            <div class=\"links\"></div>\n        ";
   };
 
   var uploadHandler = function uploadHandler() {
@@ -8707,7 +8720,7 @@ function upload(selector) {
   preview.addEventListener('click', removeHandler);
   uploadFile.addEventListener('click', uploadHandler);
 }
-},{}],"js/app.js":[function(require,module,exports) {
+},{"./utils":"js/utils.js"}],"js/app.js":[function(require,module,exports) {
 "use strict";
 
 var _app = _interopRequireDefault(require("firebase/app"));
@@ -8718,31 +8731,41 @@ var _firebaseConfig = require("./firebase-config");
 
 var _uploader = require("./uploader");
 
+var _utils = require("./utils");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var storage = _app.default.storage();
 
 (0, _uploader.upload)('#file', {
   multi: true,
-  accept: ['.png', 'jpg', 'jpeg', 'svg'],
+  accept: ['.png', '.jpg', '.jpeg', '.svg'],
   onUpload: function onUpload(files, blocks) {
     files.forEach(function (file, index) {
       var ref = storage.ref("images/".concat(file.name));
       var task = ref.put(file);
       task.on('state_changed', function (snapshot) {
-        var percent = (snapshot.bytesTransferred / snapshot.totalBytes * 100).toFixed(0);
+        var percent = (snapshot.bytesTransferred / snapshot.totalBytes * 100).toFixed(0) + '%';
         var block = blocks[index].querySelector('.preview-info-progress');
         block.textContent = percent;
-        block.style.width = percent + '%';
+        block.style.width = percent;
       }, function (error) {
         console.log(error);
       }, function () {
-        console.log('Completed');
+        task.snapshot.ref.getDownloadURL().then(function (url) {
+          var getImageDownload = (0, _utils.Element)('a', ['link-download'], 'Get image');
+          getImageDownload.setAttribute('href', url);
+          getImageDownload.setAttribute('target', '_blank');
+          var link = blocks[index].querySelector('.links');
+          link.insertAdjacentElement('afterend', getImageDownload);
+        }).catch(function (err) {
+          console.log(err);
+        });
       });
     });
   }
 });
-},{"firebase/app":"node_modules/firebase/app/dist/index.esm.js","firebase/storage":"node_modules/firebase/storage/dist/index.esm.js","./firebase-config":"js/firebase-config.js","./uploader":"js/uploader.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"firebase/app":"node_modules/firebase/app/dist/index.esm.js","firebase/storage":"node_modules/firebase/storage/dist/index.esm.js","./firebase-config":"js/firebase-config.js","./uploader":"js/uploader.js","./utils":"js/utils.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -8770,7 +8793,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52566" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63767" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

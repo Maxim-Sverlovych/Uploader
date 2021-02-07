@@ -1,35 +1,13 @@
-function bytesToSize(bytes) {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    if (!bytes) {
-        return '0 Byte'
-    }
-    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)))
-    return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i]
- }
-
- const element = (tag, classes = [], content) => {
-     const node = document.createElement(tag)
-
-     if (classes.length) {
-         node.classList.add(...classes)
-     }
-
-     if (content) {
-         node.textContent = content
-     }
-     return node
- }
-
- function noop () {}
+import { BytesToSize, Element, Noop } from './utils'
 
 export function upload (selector, options = {}) {
     let files = []
 
-    const onUpload = options.onUpload ?? noop
+    const onUpload = options.onUpload ?? Noop
     const input = document.querySelector(selector)
-    const preview = element('div', ['preview'])
-    const open = element('button', ['btn'], 'OPEN')
-    const uploadFile = element('button', ['btn', 'primaty'], 'UPLOAD')
+    const preview = Element('div', ['preview'])
+    const open = Element('button', ['btn'], 'OPEN')
+    const uploadFile = Element('button', ['btn', 'primary'], 'UPLOAD')
     uploadFile.style.display = 'none'
 
     if (options.multi) {
@@ -70,7 +48,7 @@ export function upload (selector, options = {}) {
                             <img src=${src} alt=${file.name} />
                             <div class="preview-info">
                                 <span>${file.name}</span>
-                                <span>${bytesToSize(file.size)}</span>
+                                <span>${BytesToSize(file.size)}</span>
                             </div>
                     </div>
                 `)
@@ -98,7 +76,10 @@ export function upload (selector, options = {}) {
 
     const changePreview = el => {
         el.style.opacity = 1
-        el.innerHTML = '<div class="preview-info-progress"></div>'
+        el.innerHTML = `
+        <div class="preview-info-progress"></div>
+            <div class="links"></div>
+        `
     }
 
     const uploadHandler = () => {
